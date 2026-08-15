@@ -12,7 +12,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
         behavior: reduceMotion ? 'auto' : 'smooth',
         block: 'start',
       });
-      // Move keyboard focus to the section heading for screen readers
       const heading = target.querySelector('h1, h2, h3');
       if (heading) {
         heading.setAttribute('tabindex', '-1');
@@ -28,36 +27,20 @@ const note = document.getElementById('formNote');
 if (form) {
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    note.classList.remove('success');
     note.textContent = '送出中…';
+    note.classList.remove('success');
 
     const data = Object.fromEntries(new FormData(form).entries());
     console.log('[AI 落地師] Lead captured:', data);
 
     setTimeout(() => {
       note.classList.add('success');
-      note.textContent = '✓ 收到!我會在 24 小時內回信確認時間。';
+      note.textContent = '✓ 收到 — 24 小時內回信確認時間';
       form.reset();
     }, 500);
   });
 }
 
-// Intersection-based fade-in (only when motion is allowed)
-if (!reduceMotion && 'IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.card, .ladder-step, .pillar, .big-stat, .faq-item').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 500ms ease, transform 500ms ease';
-    observer.observe(el);
-  });
-}
+// No fade-in animation — keeps the paper-document feel instant.
+// (frontend-design: "Sometimes less is more, and extra animation contributes
+// to the feeling that the design is AI-generated.")
