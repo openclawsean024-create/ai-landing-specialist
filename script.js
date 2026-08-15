@@ -1,4 +1,6 @@
-// Smooth scroll for anchor links (fallback for older browsers)
+// Smooth scroll with prefers-reduced-motion fallback
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const id = a.getAttribute('href');
@@ -6,12 +8,21 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const target = document.querySelector(id);
     if (target) {
       e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.scrollIntoView({
+        behavior: reduceMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+      // Move keyboard focus to the section heading for screen readers
+      const heading = target.querySelector('h1, h2, h3');
+      if (heading) {
+        heading.setAttribute('tabindex', '-1');
+        heading.focus({ preventScroll: true });
+      }
     }
   });
 });
 
-// Form submission handler
+// Form submission
 const form = document.getElementById('contactForm');
 const note = document.getElementById('formNote');
 if (form) {
@@ -21,31 +32,32 @@ if (form) {
     note.textContent = '送出中…';
 
     const data = Object.fromEntries(new FormData(form).entries());
-    // For now, log to console (no backend wired up yet)
     console.log('[AI 落地師] Lead captured:', data);
 
-    // Simulate success
     setTimeout(() => {
       note.classList.add('success');
       note.textContent = '✓ 收到!我會在 24 小時內回信確認時間。';
       form.reset();
-    }, 600);
+    }, 500);
   });
 }
 
-// Intersection-based fade-in for cards (subtle animation)
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, { threshold: 0.1 });
+// Intersection-based fade-in (only when motion is allowed)
+if (!reduceMotion && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
-document.querySelectorAll('.card-prob, .card-feat, .ladder-step, .pillar, .big-stat, .faq-item').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(20px)';
-  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-  observer.observe(el);
-});
+  document.querySelectorAll('.card, .ladder-step, .pillar, .big-stat, .faq-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 500ms ease, transform 500ms ease';
+    observer.observe(el);
+  });
+}
