@@ -40,7 +40,3 @@ if (form) {
     }, 500);
   });
 }
-
-// No fade-in animation — keeps the paper-document feel instant.
-// (frontend-design: "Sometimes less is more, and extra animation contributes
-// to the feeling that the design is AI-generated.")
